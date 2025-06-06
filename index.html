@@ -1,10 +1,200 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-    <title>My Telegram Game</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Крестики-нолики</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    margin: 0;
+    padding: 40px 20px 60px;
+  }
+
+  h1 {
+    font-weight: 900;
+    font-size: 3rem;
+    margin-bottom: 30px;
+    text-shadow: 0 3px 8px rgba(0,0,0,0.4);
+  }
+
+  #board {
+    display: grid;
+    grid-template-columns: repeat(3, 110px);
+    grid-gap: 12px;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+  }
+
+  .cell {
+    width: 110px;
+    height: 110px;
+    font-size: 72px;
+    font-weight: 700;
+    line-height: 110px;
+    text-align: center;
+    color: #fff;
+    background: linear-gradient(145deg, #6b70f8, #5861e9);
+    border-radius: 12px;
+    cursor: pointer;
+    user-select: none;
+    box-shadow:  6px 6px 10px #5059c0,
+                 -6px -6px 10px #7c85fc;
+    transition: background 0.3s, color 0.3s, transform 0.15s;
+  }
+
+  .cell:hover:not(:empty) {
+    color: #ffda79;
+    transform: scale(1.05);
+  }
+
+  .cell:hover:empty {
+    background: linear-gradient(145deg, #8e94f8, #7078eb);
+    box-shadow:  8px 8px 12px #515cc2,
+                 -8px -8px 12px #8f98f9;
+  }
+
+  #message {
+    margin-top: 30px;
+    font-size: 1.8rem;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  }
+
+  #restartBtn {
+    margin-top: 30px;
+    background: #ffcc00;
+    border: none;
+    border-radius: 25px;
+    padding: 14px 40px;
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: #4a3e00;
+    box-shadow: 0 6px 12px rgba(255, 204, 0, 0.7);
+    cursor: pointer;
+    transition: background 0.3s, box-shadow 0.3s;
+    user-select: none;
+  }
+
+  #restartBtn:hover {
+    background: #ffdb4d;
+    box-shadow: 0 8px 20px rgba(255, 221, 77, 0.9);
+  }
+
+  @media (max-width: 400px) {
+    #board {
+      grid-template-columns: repeat(3, 80px);
+      grid-gap: 8px;
+      padding: 15px;
+    }
+
+    .cell {
+      width: 80px;
+      height: 80px;
+      font-size: 50px;
+      line-height: 80px;
+      border-radius: 10px;
+    }
+
+    #message {
+      font-size: 1.3rem;
+      margin-top: 20px;
+    }
+
+    #restartBtn {
+      padding: 12px 30px;
+      font-size: 1.1rem;
+      margin-top: 20px;
+    }
+  }
+</style>
 </head>
 <body>
-    <h1>Привет! Это моя первая Telegram игра.</h1>
-    <button onclick="alert('Игра запущена!')">Нажми меня</button>
+
+<h1>Крестики-нолики</h1>
+<div id="board">
+  <div class="cell" data-index="0"></div>
+  <div class="cell" data-index="1"></div>
+  <div class="cell" data-index="2"></div>
+  <div class="cell" data-index="3"></div>
+  <div class="cell" data-index="4"></div>
+  <div class="cell" data-index="5"></div>
+  <div class="cell" data-index="6"></div>
+  <div class="cell" data-index="7"></div>
+  <div class="cell" data-index="8"></div>
+</div>
+<div id="message"></div>
+<button id="restartBtn">Начать заново</button>
+
+<script>
+  const cells = document.querySelectorAll('.cell');
+  const message = document.getElementById('message');
+  const restartBtn = document.getElementById('restartBtn');
+
+  let currentPlayer = 'X';
+  let boardState = Array(9).fill(null);
+  let gameOver = false;
+
+  function checkWinner() {
+    const wins = [
+      [0,1,2],[3,4,5],[6,7,8], 
+      [0,3,6],[1,4,7],[2,5,8], 
+      [0,4,8],[2,4,6]          
+    ];
+    for (const [a,b,c] of wins) {
+      if (boardState[a] && boardState[a] === boardState[b] && boardState[a] === boardState[c]) {
+        return boardState[a];
+      }
+    }
+    if (boardState.every(cell => cell !== null)) {
+      return 'draw';
+    }
+    return null;
+  }
+
+  function handleClick(e) {
+    const index = e.target.dataset.index;
+    if (gameOver || boardState[index]) return;
+
+    boardState[index] = currentPlayer;
+    e.target.textContent = currentPlayer;
+
+    const winner = checkWinner();
+    if (winner) {
+      gameOver = true;
+      if (winner === 'draw') {
+        message.textContent = 'Ничья!';
+      } else {
+        message.textContent = `Победили ${winner}!`;
+      }
+    } else {
+      currentPlayer = currentPlayer === 'X' ? 'O' : 'X';
+      message.textContent = `Ходит ${currentPlayer}`;
+    }
+  }
+
+  function restartGame() {
+    boardState.fill(null);
+    cells.forEach(cell => cell.textContent = '');
+    message.textContent = `Ходит ${currentPlayer}`;
+    currentPlayer = 'X';
+    gameOver = false;
+  }
+
+  cells.forEach(cell => cell.addEventListener('click', handleClick));
+  restartBtn.addEventListener('click', restartGame);
+
+  message.textContent = `Ходит ${currentPlayer}`;
+</script>
+
 </body>
 </html>
